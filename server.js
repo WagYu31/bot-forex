@@ -226,7 +226,8 @@ app.get('/api/gold-candles', async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     const tf = req.query.tf || '15';
     const range = req.query.range || '2d';
-    await fetchMarketCandles('XAUUSD', tf, range, res);
+    const market = req.query.market || 'XAUUSD';
+    await fetchMarketCandles(market, tf, range, res);
 });
 
 // ==========================================
