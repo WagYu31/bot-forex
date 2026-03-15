@@ -438,7 +438,10 @@
                 <div class="card-header">
                     <h2><span class="card-icon">⚡</span> Sinyal Scalping</h2>
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="scalp-tf-badge" id="scalpTF">M1</span>
+                        <div class="scalp-tf-switcher" style="display:flex; gap:4px;">
+                            <button class="scalp-tf-btn active" data-tf="1" onclick="switchScalpTF('1')">M1</button>
+                            <button class="scalp-tf-btn" data-tf="5" onclick="switchScalpTF('5')">M5</button>
+                        </div>
                         <span class="signal-time" id="scalpTime">—</span>
                     </div>
                 </div>

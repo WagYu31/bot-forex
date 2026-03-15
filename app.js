@@ -47,6 +47,7 @@ let state = {
     totalTrades: 0,
     winTrades: 0,
     currentTF: '15',
+    scalpingTF: '1',
     isConnected: false,
     lastSignal: null,
     currentMarket: 'XAUUSD',
@@ -1827,6 +1828,39 @@ const signalEngine = new SignalEngine();
 const scalpingEngine = new ScalpingEngine();
 let priceData = [];
 let updateTimer = null;
+
+// Scalping TF switcher
+async function switchScalpTF(tf) {
+    state.scalpingTF = tf;
+    console.log(`⚡ Scalping TF switched to M${tf}`);
+
+    // Update button states
+    document.querySelectorAll('.scalp-tf-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tf === tf);
+    });
+
+    // Fetch candles for the selected scalping TF
+    let scalpData = priceData; // fallback to current data
+    try {
+        const realCandles = await priceEngine.realFeed.fetchRealCandles(tf);
+        if (realCandles && realCandles.length > 10) {
+            scalpData = realCandles;
+            console.log(`📊 Scalping: ${realCandles.length} candles M${tf} loaded`);
+        }
+    } catch (e) {
+        console.warn('Scalp candle fetch error:', e);
+    }
+
+    // Rerun scalping analysis with new TF data
+    try {
+        const scalpResult = scalpingEngine.analyze(scalpData);
+        if (scalpResult) updateScalpingUI(scalpResult);
+    } catch (e) {
+        console.warn('Scalp analysis error:', e);
+    }
+
+    addAlert('info', '⚡ Scalping TF', `Timeframe scalping diubah ke M${tf}`);
+}
 
 // Initialize
 async function switchMarket(marketKey) {
