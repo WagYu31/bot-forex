@@ -2339,6 +2339,32 @@ let lastCandleRefresh = 0;
 const CANDLE_REFRESH_INTERVAL = 30000; // Refresh full candle history every 30 seconds
 
 async function updatePrice() {
+    // Check if market is closed — freeze everything for forex
+    if (!isMarketOpen()) {
+        checkMarketStatus();
+        // Show frozen state in scalping
+        const actionText = document.getElementById('scalpActionText');
+        const actionIcon = document.getElementById('scalpActionIcon');
+        const actionSub = document.getElementById('scalpActionSub');
+        const actionBox = document.getElementById('scalpActionBox');
+        if (actionText) actionText.textContent = 'MARKET TUTUP';
+        if (actionIcon) actionIcon.textContent = '🔴';
+        if (actionSub) actionSub.textContent = 'Forex tutup — Buka Senin 05:00 WIB';
+        if (actionBox) {
+            actionBox.className = 'scalp-action-box wait';
+        }
+        // Update time display only
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        setEl('updateTime', timeStr);
+        setEl('scalpTime', timeStr);
+        return; // Skip all price updates and analysis
+    }
+
+    // Market is open — hide banner
+    checkMarketStatus();
+
     if (state.dataSource === 'metaapi' && metaApi.connected) {
         // Fetch real price from MT4/MT5
         const tick = await metaApi.getCurrentPrice();
