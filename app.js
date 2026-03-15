@@ -1859,17 +1859,24 @@ async function switchMarket(marketKey) {
     // Rebuild price feed sources for new market
     priceEngine.realFeed.buildSources();
 
+    // Reset price engine base price to new market
+    priceEngine.basePrice = market.basePrice;
+    priceEngine.momentum = 0;
+    priceEngine.trend = 0;
+
     // Reset engines
     signalEngine.confirmedDirection = 'NEUTRAL';
     signalEngine.confirmCounter = 0;
     signalEngine.trendStreak = 0;
+    signalEngine.indicators = {};
     scalpingEngine.position = null;
     scalpingEngine.cooldownUntil = 0;
 
-    // Clear previous data
+    // Clear previous data & RSI sparkline history
     priceData = [];
     state.currentPrice = 0;
     state.previousPrice = 0;
+    rsiHistory.length = 0;
 
     addAlert('info', '🔄 Market Switch', `Beralih ke ${market.icon} ${market.pair}`);
 
@@ -1877,13 +1884,14 @@ async function switchMarket(marketKey) {
     try {
         const realPrice = await priceEngine.syncWithRealPrice();
         if (realPrice) {
+            priceEngine.basePrice = realPrice;
             addAlert('buy', '✅ Harga Real', `${market.pair}: $${realPrice.toFixed(market.decimals)}`);
         }
     } catch (e) { console.warn('Price sync error:', e); }
 
     // Fetch new candles
     try {
-        const tf = state.currentTF === 'M1' ? '1' : state.currentTF === 'M5' ? '5' : '15';
+        const tf = state.currentTF === '1' ? '1' : state.currentTF === '5' ? '5' : state.currentTF || '15';
         const realCandles = await priceEngine.realFeed.fetchRealCandles(tf);
         if (realCandles && realCandles.length > 10) {
             priceData = realCandles;
@@ -1897,6 +1905,7 @@ async function switchMarket(marketKey) {
 
     if (priceData.length > 0) {
         state.currentPrice = priceData[priceData.length - 1].close;
+        state.previousPrice = priceData.length > 1 ? priceData[priceData.length - 2].close : state.currentPrice;
     }
 
     // Reinitialize TradingView widget with new symbol
@@ -1909,12 +1918,18 @@ async function switchMarket(marketKey) {
         } catch (e) { console.warn('TV reinit error:', e); }
     }
 
-    // Rerun analysis
+    // Rerun ALL analysis with new market data
     const analysis = signalEngine.analyze(priceData);
     if (analysis) {
         updateSignalUI(analysis);
         checkSignalChange(analysis);
     }
+
+    // Rerun scalping analysis
+    try {
+        const scalpResult = scalpingEngine.analyze(priceData);
+        if (scalpResult) updateScalpingUI(scalpResult);
+    } catch (e) { console.warn('Scalp reanalysis error:', e); }
 
     updatePriceDisplay();
     drawChart();
