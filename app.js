@@ -868,7 +868,7 @@ class ScalpingEngine {
         let buyScore = 0, sellScore = 0;
 
         // 1. RSI — Adaptive period based on timeframe
-        const rsiPeriod = (state.currentTF === '1' || state.currentTF === '5') ? 9 : 14;
+        const rsiPeriod = (state.currentTF === '1' || state.currentTF === '5') ? 8 : 14;
         const rsiVal = TechnicalIndicators.RSI(closes, rsiPeriod);
         if (rsiVal !== null) {
             result.indicators.rsi = { value: Math.round(rsiVal * 100) / 100, period: rsiPeriod };
@@ -1230,7 +1230,7 @@ class SignalEngine {
         const prevPrice = closes.length > 1 ? closes[closes.length - 2] : currentPrice;
 
         // ====== INDICATOR 1: RSI — Adaptive period (Weight: 2.0) ======
-        const rsiPeriod = (state.currentTF === '1' || state.currentTF === '5') ? 9 : 14;
+        const rsiPeriod = (state.currentTF === '1' || state.currentTF === '5') ? 8 : 14;
         const rsi = TechnicalIndicators.RSI(closes, rsiPeriod);
         if (rsi !== null) {
             this.indicators.rsi = { value: Math.round(rsi * 100) / 100, period: rsiPeriod };
@@ -4272,7 +4272,7 @@ function changeTF(tf) {
     state.currentTF = tf;
     document.querySelectorAll('#tfSelector .tf-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tf === tf));
     // Update RSI period labels based on timeframe
-    const rsiP = (tf === '1' || tf === '5') ? 9 : 14;
+    const rsiP = (tf === '1' || tf === '5') ? 8 : 14;
     const rsiLabel = document.getElementById('rsi-label');
     const scalpLabel = document.getElementById('scalpRSILabel');
     if (rsiLabel) rsiLabel.textContent = `RSI (${rsiP})`;
