@@ -516,8 +516,11 @@
                             </div>
                             <div class="scalp-ind-row">
                                 <span class="scalp-ind-name">Spread</span>
-                                <span class="scalp-ind-val" id="scalpSpread">—</span>
-                                <span class="scalp-ind-sig" id="scalpSpreadSig">—</span>
+                                <select id="spreadSelector" class="spread-select" onchange="changeSpread(this.value)">
+                                    <option value="0.8">0.8 pip</option>
+                                    <option value="1.0">1.0 pip</option>
+                                    <option value="1.6" selected>1.6 pip</option>
+                                </select>
                             </div>
                         </div>
                     </div>

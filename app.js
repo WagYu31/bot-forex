@@ -48,6 +48,7 @@ let state = {
     winTrades: 0,
     currentTF: '15',
     scalpingTF: '1',
+    brokerSpread: 1.6,
     isConnected: false,
     lastSignal: null,
     currentMarket: 'XAUUSD',
@@ -959,13 +960,12 @@ class ScalpingEngine {
             }
         }
 
-        // 5. ATR for spread estimation & volatility
+        // 5. Broker spread (user-selected) + ATR for TP/SL
         const atr = TechnicalIndicators.ATR(highs, lows, closes, 7);
-        const avgPrice = TechnicalIndicators.SMA(closes, 7) || currentPrice;
-        const estimatedSpread = atr ? (atr * 0.1) : 0.5;
+        const estimatedSpread = state.brokerSpread || 1.6;
         result.indicators.spread = {
             value: estimatedSpread.toFixed(1),
-            signal: estimatedSpread < 2.0 ? 'BUY' : estimatedSpread < 5.0 ? 'NEUTRAL' : 'SELL'
+            signal: estimatedSpread < 1.0 ? 'BUY' : estimatedSpread <= 1.0 ? 'NEUTRAL' : 'SELL'
         };
 
         // ====== DETERMINE SCALPING SIGNAL ======
@@ -1829,6 +1829,21 @@ const scalpingEngine = new ScalpingEngine();
 let priceData = [];
 let updateTimer = null;
 
+// Spread selector
+function changeSpread(value) {
+    state.brokerSpread = parseFloat(value);
+    console.log(`💰 Broker spread set to ${value} pips`);
+    localStorage.setItem('botgold_spread', value);
+
+    // Rerun scalping with new spread
+    try {
+        const scalpResult = scalpingEngine.analyze(priceData);
+        if (scalpResult) updateScalpingUI(scalpResult);
+    } catch (e) { console.warn('Spread reanalysis error:', e); }
+
+    addAlert('info', '💰 Spread', `Spread broker diset ke ${value} pips`);
+}
+
 // Scalping TF switcher
 async function switchScalpTF(tf) {
     state.scalpingTF = tf;
@@ -2430,6 +2445,13 @@ function loadSettings() {
         document.getElementById('capitalInput').value = state.capital;
         document.getElementById('riskPercent').value = state.riskPercent;
         document.getElementById('targetProfit').value = state.targetProfit;
+    }
+    // Load saved spread
+    const savedSpread = localStorage.getItem('botgold_spread');
+    if (savedSpread) {
+        state.brokerSpread = parseFloat(savedSpread);
+        const sel = document.getElementById('spreadSelector');
+        if (sel) sel.value = savedSpread;
     }
     updateCapitalSummary();
 }

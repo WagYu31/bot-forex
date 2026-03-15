@@ -2190,6 +2190,30 @@ body {
     box-shadow: 0 0 8px rgba(247,201,72,0.3);
 }
 
+.spread-select {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(247,201,72,0.3);
+    border-radius: 4px;
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.spread-select:hover,
+.spread-select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 6px rgba(247,201,72,0.2);
+}
+
+.spread-select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
 .scalping-content {
     display: grid;
     grid-template-columns: 1fr 1.2fr 1fr;
