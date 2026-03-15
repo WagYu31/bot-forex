@@ -1845,6 +1845,8 @@ function changeSpread(value) {
 }
 
 // Scalping TF switcher
+let scalpCandleData = null; // Separate candle data for scalping TF
+
 async function switchScalpTF(tf) {
     state.scalpingTF = tf;
     console.log(`⚡ Scalping TF switched to M${tf}`);
@@ -1854,22 +1856,39 @@ async function switchScalpTF(tf) {
         btn.classList.toggle('active', btn.dataset.tf === tf);
     });
 
+    // Update RSI label to show TF
+    const rsiLabel = document.getElementById('scalpRSILabel');
+    if (rsiLabel) rsiLabel.textContent = `RSI M${tf}`;
+
+    // Show loading
+    const actionText = document.getElementById('scalpActionText');
+    if (actionText) actionText.textContent = 'Loading...';
+
     // Fetch candles for the selected scalping TF
     let scalpData = priceData; // fallback to current data
     try {
         const realCandles = await priceEngine.realFeed.fetchRealCandles(tf);
         if (realCandles && realCandles.length > 10) {
             scalpData = realCandles;
+            scalpCandleData = realCandles;
             console.log(`📊 Scalping: ${realCandles.length} candles M${tf} loaded`);
+            addAlert('buy', '📊 Scalping Data', `${realCandles.length} candles M${tf} loaded`);
+        } else {
+            console.warn(`⚠️ M${tf} candles < 10, using current data`);
+            scalpCandleData = null;
         }
     } catch (e) {
         console.warn('Scalp candle fetch error:', e);
+        scalpCandleData = null;
     }
 
     // Rerun scalping analysis with new TF data
     try {
         const scalpResult = scalpingEngine.analyze(scalpData);
-        if (scalpResult) updateScalpingUI(scalpResult);
+        if (scalpResult) {
+            updateScalpingUI(scalpResult);
+            console.log(`✅ Scalping M${tf}: RSI=${scalpResult.indicators?.rsi?.value}, Signal=${scalpResult.signal}`);
+        }
     } catch (e) {
         console.warn('Scalp analysis error:', e);
     }
