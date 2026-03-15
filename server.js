@@ -7,7 +7,7 @@ const http = require('http');
 const path = require('path');
 
 const app = express();
-const PORT = 3030;
+const PORT = process.env.PORT || 3030;
 
 // Custom fetch with SSL bypass
 function fetchUrl(url, timeout = 8000) {
