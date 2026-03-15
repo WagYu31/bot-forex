@@ -349,7 +349,7 @@ class MetaApiManager {
 class RealTimePriceFeed {
     constructor() {
         this.lastRealPrice = null;
-        this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        this.isLocal = true; // Always use server API proxy (works on localhost and hosted)
         this.apiSources = [];
         this.buildSources();
     }
