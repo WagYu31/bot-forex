@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOT FOREX WAGYU — XAU/USD Signal Dashboard</title>
+    <meta name="description"
+        content="Dashboard sinyal trading XAU/USD dengan analisis teknikal multi-indikator untuk broker XM GO">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#gold-grad)" stroke-width="2.5" />
+                        <path d="M14 26L20 12L26 26H14Z" fill="url(#gold-grad)" />
+                        <defs>
+                            <linearGradient id="gold-grad" x1="0" y1="0" x2="40" y2="40">
+                                <stop stop-color="#F7C948" />
+                                <stop offset="1" stop-color="#D4A017" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="logo-title">BOT FOREX WAGYU</h1>
+                    <span class="logo-subtitle">XM GO Signal</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-center">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="pair-badge">
+                    <span class="pair-flag">🥇</span>
+                    <span class="pair-name">XAU/USD</span>
+                    <span class="pair-label">Gold Spot</span>
+                </div>
+                <!-- Market Switcher -->
+                <div style="display: flex; gap: 4px; margin-left: 8px;">
+                    <button class="market-btn active" data-market="XAUUSD" onclick="switchMarket('XAUUSD')">
+                        🥇 Gold
+                    </button>
+                    <button class="market-btn" data-market="BTCUSD" onclick="switchMarket('BTCUSD')">
+                        ₿ BTC
+                    </button>
+                </div>
+            </div>
+            <div class="price-display">
+                <span class="price-value" id="currentPrice">—</span>
+                <span class="price-change" id="priceChange">—</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="status-badge" id="connectionStatus">
+                <span class="status-dot"></span>
+                <span>Connecting...</span>
+            </div>
+            <div class="last-update" id="lastUpdate">—</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard">
+        <!-- Row 1: Full-width Chart -->
+        <section class="dash-row chart-row">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <h2><span class="card-icon">📈</span> Live Chart</h2>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="chart-toggle" style="display:flex; gap:4px;">
+                            <button class="tf-btn active" id="btnTradingView" onclick="switchChartMode('tradingview')"
+                                style="font-size:11px; padding:4px 8px;">TradingView</button>
+                            <button class="tf-btn" id="btnCustomChart" onclick="switchChartMode('custom')"
+                                style="font-size:11px; padding:4px 8px;">Custom</button>
+                        </div>
+                        <div class="tf-selector" id="tfSelector" style="display:flex; align-items:center; gap:4px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.3); border-radius:8px; padding:2px 8px;">
+                            <span style="font-size:10px; color:#ffd700; font-weight:600; margin-right:2px;">⏱ Signal TF:</span>
+                            <button class="tf-btn" data-tf="1" onclick="changeTF('1')">M1</button>
+                            <button class="tf-btn" data-tf="5" onclick="changeTF('5')">M5</button>
+                            <button class="tf-btn active" data-tf="15" onclick="changeTF('15')">M15</button>
+                            <button class="tf-btn" data-tf="60" onclick="changeTF('60')">H1</button>
+                            <button class="tf-btn" data-tf="240" onclick="changeTF('240')">H4</button>
+                            <button class="tf-btn" data-tf="D" onclick="changeTF('D')">D1</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- TradingView Widget -->
+                <div id="tradingviewContainer" class="chart-container"
+                    style="height:520px; padding:0; overflow:hidden;">
+                    <div class="tradingview-widget-container" style="height:100%;width:100%">
+                        <div id="tradingview_widget" style="height:100%;width:100%;"></div>
+                    </div>
+                </div>
+                <!-- Custom Canvas Chart (hidden by default) -->
+                <div class="chart-container" id="chartContainer" style="display:none;">
+                    <canvas id="signalChart"></canvas>
+                    <div class="chart-legend" id="chartLegend">
+                        <span class="legend-item buy">▲ BUY</span>
+                        <span class="legend-item sell">▼ SELL</span>
+                        <span class="legend-item neutral">● NEUTRAL</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 2: Signal + Prediksi + Modal (3 columns) -->
+        <section class="dash-row three-col">
+            <!-- Signal Panel -->
+            <div class="card card-signal" id="signalCard">
+                <div class="card-header">
+                    <h2><span class="card-icon">📡</span> Sinyal Utama</h2>
+                    <span class="signal-time" id="signalTime">—</span>
+                </div>
+                <div class="signal-main">
+                    <div class="signal-direction" id="signalDirection">
+                        <div class="signal-arrow" id="signalArrow">⏳</div>
+                        <div class="signal-label" id="signalLabel">MENUNGGU DATA</div>
+                    </div>
+                    <div class="confidence-ring" id="confidenceRing">
+                        <svg viewBox="0 0 120 120">
+                            <circle class="ring-bg" cx="60" cy="60" r="52" />
+                            <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52" stroke-dasharray="327"
+                                stroke-dashoffset="327" />
+                        </svg>
+                        <div class="confidence-text">
+                            <span class="confidence-value" id="confidenceValue">0</span>
+                            <span class="confidence-unit">%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="signal-votes" id="signalVotes">
+                    <div class="vote-bar">
+                        <span class="vote-label">BUY</span>
+                        <div class="vote-track">
+                            <div class="vote-fill buy" id="buyVotes" style="width:0%"></div>
+                        </div>
+                        <span class="vote-count" id="buyCount">0</span>
+                    </div>
+                    <div class="vote-bar">
+                        <span class="vote-label">SELL</span>
+                        <div class="vote-track">
+                            <div class="vote-fill sell" id="sellVotes" style="width:0%"></div>
+                        </div>
+                        <span class="vote-count" id="sellCount">0</span>
+                    </div>
+                    <div class="vote-bar">
+                        <span class="vote-label">WAIT</span>
+                        <div class="vote-track">
+                            <div class="vote-fill neutral" id="neutralVotes" style="width:0%"></div>
+                        </div>
+                        <span class="vote-count" id="neutralCount">0</span>
+                    </div>
+                </div>
+                <!-- Indicator Vote Breakdown -->
+                <div class="vote-breakdown" id="voteBreakdown">
+                    <div class="vb-section buy-section">
+                        <div class="vb-header buy">📈 BUY:</div>
+                        <div class="vb-indicators" id="vbBuyList">—</div>
+                    </div>
+                    <div class="vb-section sell-section">
+                        <div class="vb-header sell">📉 SELL:</div>
+                        <div class="vb-indicators" id="vbSellList">—</div>
+                    </div>
+                    <div class="vb-section neutral-section">
+                        <div class="vb-header neutral">⏸️ WAIT:</div>
+                        <div class="vb-indicators" id="vbNeutralList">—</div>
+                    </div>
+                </div>
+                <!-- Trend Stability Info -->
+                <div class="trend-stability-bar" id="trendStabilityBar" style="display:none;">
+                    <span class="ts-label">📊 Tren:</span>
+                    <span class="ts-badge" id="tsBadge">—</span>
+                    <span class="ts-streak" id="tsStreak">0 tick</span>
+                    <span class="ts-reversal" id="tsReversal" style="display:none;"></span>
+                </div>
+                <!-- TP/SL Quick Info & Open Position Status -->
+                <div class="signal-tp-info" id="signalTpInfo" style="display:none;">
+                    <div class="tp-row">
+                        <div class="tp-item tp-target">
+                            <span class="tp-label">🎯 TP1</span>
+                            <span class="tp-value" id="sigTp1">—</span>
+                        </div>
+                        <div class="tp-item tp-target">
+                            <span class="tp-label">🎯 TP2</span>
+                            <span class="tp-value" id="sigTp2">—</span>
+                        </div>
+                        <div class="tp-item tp-stop">
+                            <span class="tp-label">🛑 SL</span>
+                            <span class="tp-value" id="sigSl">—</span>
+                        </div>
+                        <div class="tp-item tp-rr">
+                            <span class="tp-label">⚖️ R:R</span>
+                            <span class="tp-value" id="sigRR">—</span>
+                        </div>
+                    </div>
+                    <div class="tp-distance-row">
+                        <span class="tp-dist" id="sigTpDist">TP1: +0 pips</span>
+                        <span class="tp-dist" id="sigSlDist">SL: -0 pips</span>
+                    </div>
+                </div>
+                <div class="open-position-status" id="openPosStatus" style="display:none;">
+                    <div class="ops-icon" id="opsIcon">🔒</div>
+                    <div class="ops-content">
+                        <div class="ops-label" id="opsLabel">JANGAN OPEN</div>
+                        <div class="ops-reason" id="opsReason">Menunggu konfirmasi...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Prediction / Range -->
+            <div class="card card-prediction" id="predictionCard">
+                <div class="card-header">
+                    <h2><span class="card-icon">🎯</span> Prediksi Range Harga</h2>
+                </div>
+                <div class="prediction-content">
+                    <div class="prediction-visual">
+                        <div class="range-bar-container">
+                            <div class="range-label-top">
+                                <span>Resistance</span>
+                                <span class="range-price" id="resistancePrice">—</span>
+                            </div>
+                            <div class="range-bar">
+                                <div class="range-zone resistance" id="resistanceZone"></div>
+                                <div class="range-current" id="currentPriceMarker">
+                                    <span class="marker-label" id="markerPrice">—</span>
+                                </div>
+                                <div class="range-zone support" id="supportZone"></div>
+                            </div>
+                            <div class="range-label-bottom">
+                                <span>Support</span>
+                                <span class="range-price" id="supportPrice">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="prediction-levels">
+                        <div class="level-item resistance-strong">
+                            <span class="level-dot"></span>
+                            <span class="level-name">R2 (Strong)</span>
+                            <span class="level-price" id="r2Price">—</span>
+                        </div>
+                        <div class="level-item resistance">
+                            <span class="level-dot"></span>
+                            <span class="level-name">R1</span>
+                            <span class="level-price" id="r1Price">—</span>
+                        </div>
+                        <div class="level-item pivot">
+                            <span class="level-dot"></span>
+                            <span class="level-name">Pivot</span>
+                            <span class="level-price" id="pivotPrice">—</span>
+                        </div>
+                        <div class="level-item support">
+                            <span class="level-dot"></span>
+                            <span class="level-name">S1</span>
+                            <span class="level-price" id="s1Price">—</span>
+                        </div>
+                        <div class="level-item support-strong">
+                            <span class="level-dot"></span>
+                            <span class="level-name">S2 (Strong)</span>
+                            <span class="level-price" id="s2Price">—</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Entry Recommendation based on capital -->
+                <div class="entry-recommendation" id="entryRecommendation">
+                    <div class="entry-header">
+                        <span class="entry-icon">📋</span>
+                        <span>Rekomendasi Entry</span>
+                        <span class="entry-direction-badge" id="entryDirectionBadge">WAIT</span>
+                    </div>
+                    <div class="entry-indicator-summary" id="entryIndicatorSummary">
+                        <div class="entry-ind-label">Indikator Utama:</div>
+                        <div class="entry-ind-tags" id="entryIndTags">
+                            <span class="vb-tag neutral">Menunggu data...</span>
+                        </div>
+                    </div>
+                    <div class="entry-details">
+                        <div class="entry-row"><span>Entry Price</span><span class="entry-value"
+                                id="entryPrice">—</span></div>
+                        <div class="entry-row"><span>Stop Loss</span><span class="entry-value loss"
+                                id="entrySL">—</span></div>
+                        <div class="entry-row"><span>Take Profit 1</span><span class="entry-value profit"
+                                id="entryTP1">—</span></div>
+                        <div class="entry-row"><span>Take Profit 2</span><span class="entry-value profit"
+                                id="entryTP2">—</span></div>
+                        <div class="entry-row"><span>Lot Size</span><span class="entry-value" id="entryLot">—</span>
+                        </div>
+                        <div class="entry-row"><span>Potensi Profit</span><span class="entry-value profit"
+                                id="entryProfit">—</span></div>
+                        <div class="entry-row"><span>Potensi Loss</span><span class="entry-value loss"
+                                id="entryLoss">—</span></div>
+                        <div class="entry-row"><span>Risk:Reward</span><span class="entry-value" id="entryRR">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capital Management Card -->
+            <div class="card card-capital" id="capitalCard">
+                <div class="card-header">
+                    <h2><span class="card-icon">💰</span> Manajemen Modal</h2>
+                </div>
+                <div class="capital-form">
+                    <div class="form-group">
+                        <label for="capitalInput">Modal Trading (USD)</label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">$</span>
+                            <input type="number" id="capitalInput" placeholder="1000" min="10" step="1" value="1000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="riskPercent">Risiko per Trade (%)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="riskPercent" placeholder="2" min="0.1" max="10" step="0.1"
+                                value="2">
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="targetProfit">Target Profit (%)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="targetProfit" placeholder="5" min="0.5" max="100" step="0.5"
+                                value="5">
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
+                    <button class="btn-apply" id="applyCapital" onclick="applyCapitalSettings()">
+                        <span>Terapkan</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="capital-summary" id="capitalSummary">
+                    <div class="summary-item">
+                        <span class="summary-label">Modal</span>
+                        <span class="summary-value" id="sumCapital">$1,000</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Maks. Risiko</span>
+                        <span class="summary-value loss" id="sumRisk">$20.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Target Profit</span>
+                        <span class="summary-value profit" id="sumTarget">$50.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Lot Aman</span>
+                        <span class="summary-value" id="sumLot">0.02</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 3: Indicators Grid -->
+        <section class="dash-row">
+            <div class="indicators-grid">
+                <div class="card card-indicator" id="ind-rsi">
+                    <div class="ind-header"><span class="ind-name" id="rsi-label">RSI (14)</span><span class="ind-signal"
+                            id="rsi-signal">—</span></div>
+                    <div class="ind-value" id="rsi-value">—</div>
+                    <div class="ind-gauge">
+                        <div class="gauge-track">
+                            <div class="gauge-zone oversold" style="width:30%"></div>
+                            <div class="gauge-zone normal" style="width:40%"></div>
+                            <div class="gauge-zone overbought" style="width:30%"></div>
+                        </div>
+                        <div class="gauge-needle" id="rsi-needle" style="left:50%"></div>
+                    </div>
+                    <canvas id="rsi-sparkline" width="280" height="60" style="width:100%; height:60px; margin-top:6px; border-radius:6px; background:rgba(0,0,0,0.3);"></canvas>
+                    <div class="ind-desc">Oversold &lt;30 | Overbought &gt;70</div>
+                </div>
+                <div class="card card-indicator" id="ind-macd">
+                    <div class="ind-header"><span class="ind-name">MACD</span><span class="ind-signal"
+                            id="macd-signal">—</span></div>
+                    <div class="ind-value" id="macd-value">—</div>
+                    <div class="ind-detail"><span>Signal: <b id="macd-signal-line">—</b></span><span>Hist: <b
+                                id="macd-histogram">—</b></span></div>
+                    <div class="ind-desc">Crossover = trend change</div>
+                </div>
+                <div class="card card-indicator" id="ind-ma">
+                    <div class="ind-header"><span class="ind-name">Moving Avg</span><span class="ind-signal"
+                            id="ma-signal">—</span></div>
+                    <div class="ind-value" id="ma-value">—</div>
+                    <div class="ind-detail"><span>SMA 20: <b id="sma20-value">—</b></span><span>EMA 50: <b
+                                id="ema50-value">—</b></span></div>
+                    <div class="ind-desc">Price vs MA alignment</div>
+                </div>
+                <div class="card card-indicator" id="ind-bb">
+                    <div class="ind-header"><span class="ind-name">Bollinger</span><span class="ind-signal"
+                            id="bb-signal">—</span></div>
+                    <div class="ind-value" id="bb-value">—</div>
+                    <div class="ind-detail"><span>Upper: <b id="bb-upper">—</b></span><span>Lower: <b
+                                id="bb-lower">—</b></span></div>
+                    <div class="ind-desc">Volatility & reversal</div>
+                </div>
+                <div class="card card-indicator" id="ind-stoch">
+                    <div class="ind-header"><span class="ind-name">Stochastic</span><span class="ind-signal"
+                            id="stoch-signal">—</span></div>
+                    <div class="ind-value" id="stoch-value">—</div>
+                    <div class="ind-gauge">
+                        <div class="gauge-track">
+                            <div class="gauge-zone oversold" style="width:20%"></div>
+                            <div class="gauge-zone normal" style="width:60%"></div>
+                            <div class="gauge-zone overbought" style="width:20%"></div>
+                        </div>
+                        <div class="gauge-needle" id="stoch-needle" style="left:50%"></div>
+                    </div>
+                    <div class="ind-desc">%K/%D crossover signals</div>
+                </div>
+                <div class="card card-indicator" id="ind-atr">
+                    <div class="ind-header"><span class="ind-name">ATR (14)</span><span class="ind-signal"
+                            id="atr-signal">—</span></div>
+                    <div class="ind-value" id="atr-value">—</div>
+                    <div class="ind-detail"><span>Volatilitas: <b id="atr-vol">—</b></span></div>
+                    <div class="ind-desc">Average True Range</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 3.5: Scalping Signal Panel (full width) -->
+        <section class="dash-row">
+            <div class="card card-scalping" id="scalpingCard">
+                <div class="card-header">
+                    <h2><span class="card-icon">⚡</span> Sinyal Scalping</h2>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="scalp-tf-badge" id="scalpTF">M1</span>
+                        <span class="signal-time" id="scalpTime">—</span>
+                    </div>
+                </div>
+
+                <div class="scalping-content">
+                    <!-- Left: Main Scalping Signal -->
+                    <div class="scalp-main-signal">
+                        <div class="scalp-action-box" id="scalpActionBox">
+                            <div class="scalp-action-icon" id="scalpActionIcon">⏳</div>
+                            <div class="scalp-action-text" id="scalpActionText">MENUNGGU</div>
+                            <div class="scalp-action-sub" id="scalpActionSub">Analisis pasar...</div>
+                        </div>
+                        <div class="scalp-confidence">
+                            <div class="scalp-conf-bar">
+                                <div class="scalp-conf-fill" id="scalpConfFill" style="width:0%"></div>
+                            </div>
+                            <span class="scalp-conf-label" id="scalpConfLabel">Kekuatan: 0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Center: Entry / TP / SL Levels -->
+                    <div class="scalp-levels">
+                        <div class="scalp-level-title">📍 Level Trading</div>
+                        <div class="scalp-level-grid">
+                            <div class="scalp-level-item entry">
+                                <span class="scalp-level-label">ENTRY</span>
+                                <span class="scalp-level-value" id="scalpEntry">—</span>
+                            </div>
+                            <div class="scalp-level-item tp1">
+                                <span class="scalp-level-label">TP 1</span>
+                                <span class="scalp-level-value profit" id="scalpTP1">—</span>
+                            </div>
+                            <div class="scalp-level-item tp2">
+                                <span class="scalp-level-label">TP 2</span>
+                                <span class="scalp-level-value profit" id="scalpTP2">—</span>
+                            </div>
+                            <div class="scalp-level-item sl">
+                                <span class="scalp-level-label">STOP LOSS</span>
+                                <span class="scalp-level-value loss" id="scalpSL">—</span>
+                            </div>
+                        </div>
+                        <div class="scalp-rr-info">
+                            <span>Risk/Reward: <b id="scalpRR">—</b></span>
+                            <span>Pips TP: <b id="scalpPipsTP">—</b></span>
+                            <span>Pips SL: <b id="scalpPipsSL">—</b></span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Fast Indicators -->
+                    <div class="scalp-indicators">
+                        <div class="scalp-ind-title">🔬 Indikator Cepat</div>
+                        <div class="scalp-ind-list">
+                            <div class="scalp-ind-row">
+                                <span class="scalp-ind-name" id="scalpRSILabel">RSI (9)</span>
+                                <span class="scalp-ind-val" id="scalpRSI">—</span>
+                                <span class="scalp-ind-sig" id="scalpRSISig">—</span>
+                            </div>
+                            <div class="scalp-ind-row">
+                                <span class="scalp-ind-name">Stoch (5,3)</span>
+                                <span class="scalp-ind-val" id="scalpStoch">—</span>
+                                <span class="scalp-ind-sig" id="scalpStochSig">—</span>
+                            </div>
+                            <div class="scalp-ind-row">
+                                <span class="scalp-ind-name">EMA 9/21</span>
+                                <span class="scalp-ind-val" id="scalpEMA">—</span>
+                                <span class="scalp-ind-sig" id="scalpEMASig">—</span>
+                            </div>
+                            <div class="scalp-ind-row">
+                                <span class="scalp-ind-name">BB Touch</span>
+                                <span class="scalp-ind-val" id="scalpBB">—</span>
+                                <span class="scalp-ind-sig" id="scalpBBSig">—</span>
+                            </div>
+                            <div class="scalp-ind-row">
+                                <span class="scalp-ind-name">Spread</span>
+                                <span class="scalp-ind-val" id="scalpSpread">—</span>
+                                <span class="scalp-ind-sig" id="scalpSpreadSig">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reversal Warning Alert -->
+                <div class="scalp-reversal-alert" id="scalpReversalAlert" style="display:none;">
+                    <div class="reversal-icon" id="reversalIcon">⚠️</div>
+                    <div class="reversal-info">
+                        <div class="reversal-title" id="reversalTitle">PERINGATAN REVERSAL</div>
+                        <div class="reversal-msg" id="reversalMsg">Harga bergerak berlawanan sinyal</div>
+                    </div>
+                    <div class="reversal-meter">
+                        <div class="reversal-meter-fill" id="reversalMeterFill" style="width:0%"></div>
+                    </div>
+                    <div class="reversal-strength" id="reversalStrength">0%</div>
+                </div>
+
+                <!-- Scalping Candle Signal Chart -->
+                <div class="scalp-candle-chart">
+                    <div class="scalp-candle-header">
+                        <span class="scalp-candle-title">🕯️ Peta Sinyal Candle</span>
+                        <div class="scalp-candle-legend">
+                            <span class="scl-legend buy">▲ BUY</span>
+                            <span class="scl-legend sell">▼ SELL</span>
+                            <span class="scl-legend up">█ Naik</span>
+                            <span class="scl-legend down">█ Turun</span>
+                            <span class="scl-legend entry">— Entry</span>
+                            <span class="scl-legend tp">— TP</span>
+                            <span class="scl-legend sl">— SL</span>
+                        </div>
+                    </div>
+                    <canvas id="scalpCandleCanvas" width="800" height="200"></canvas>
+                </div>
+
+                <!-- Position Management Bar -->
+                <div class="scalp-position-bar" id="scalpPositionBar" style="display:none;">
+                    <div class="scalp-pos-info">
+                        <span class="scalp-pos-type" id="scalpPosType">—</span>
+                        <span>Entry: <b id="scalpPosEntry">—</b></span>
+                        <span>Current: <b id="scalpPosCurrent">—</b></span>
+                    </div>
+                    <div class="scalp-pos-pnl">
+                        <span class="scalp-pnl-label">P/L:</span>
+                        <span class="scalp-pnl-value" id="scalpPosPnL">$0.00</span>
+                        <span class="scalp-pnl-pips" id="scalpPosPips">(0 pips)</span>
+                    </div>
+                    <div class="scalp-pos-actions">
+                        <button class="scalp-close-btn" id="scalpCloseBtn" onclick="closeScalpPosition()">✖ Tutup
+                            Posisi</button>
+                    </div>
+                </div>
+
+                <!-- Scalping History -->
+                <div class="scalp-history">
+                    <div class="scalp-hist-title">📋 Riwayat Scalping</div>
+                    <div class="scalp-hist-list" id="scalpHistList">
+                        <div class="scalp-hist-empty">Belum ada posisi...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 4: Teknik Trading (full width) -->
+        <section class="dash-row">
+            <div class="card card-techniques" id="techniquesCard">
+                <div class="card-header">
+                    <h2><span class="card-icon">🎯</span> Teknik Trading</h2>
+                    <span class="tech-total-votes" id="techTotalVotes">9 Indikator Aktif</span>
+                </div>
+                <div class="techniques-grid">
+                    <div class="technique-item style-card" id="techStyle">
+                        <div class="tech-icon-box style-icon">📅</div>
+                        <div class="tech-content">
+                            <div class="tech-label">Gaya Trading Disarankan</div>
+                            <div class="tech-name" id="techStyleName">Day Trading</div>
+                            <div class="tech-desc" id="techStyleDesc">Kondisi normal — buka & tutup posisi dalam hari
+                                yang sama</div>
+                        </div>
+                    </div>
+                    <div class="technique-item" id="techTrend">
+                        <div class="tech-icon-box">📊</div>
+                        <div class="tech-content">
+                            <div class="tech-header">
+                                <div class="tech-label">Trend Following (ADX)</div><span class="ind-signal neutral"
+                                    id="techTrendSignal">NEUTRAL</span>
+                            </div>
+                            <div class="tech-value" id="techTrendValue">ADX: — | Tren: —</div>
+                            <div class="tech-di-bars">
+                                <div class="di-bar"><span class="di-label">+DI</span>
+                                    <div class="di-progress">
+                                        <div class="di-fill buy" id="plusDIBar" style="width:50%"></div>
+                                    </div><span class="di-value" id="plusDIValue">—</span>
+                                </div>
+                                <div class="di-bar"><span class="di-label">-DI</span>
+                                    <div class="di-progress">
+                                        <div class="di-fill sell" id="minusDIBar" style="width:50%"></div>
+                                    </div><span class="di-value" id="minusDIValue">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="technique-item" id="techPriceAction">
+                        <div class="tech-icon-box">🕯️</div>
+                        <div class="tech-content">
+                            <div class="tech-header">
+                                <div class="tech-label">Price Action</div><span class="ind-signal neutral"
+                                    id="techPASignal">NEUTRAL</span>
+                            </div>
+                            <div class="tech-value" id="techPAPatterns">Menunggu pola candlestick...</div>
+                            <div class="tech-patterns-list" id="techPAList"></div>
+                        </div>
+                    </div>
+                    <div class="technique-item" id="techBreakout">
+                        <div class="tech-icon-box">💥</div>
+                        <div class="tech-content">
+                            <div class="tech-header">
+                                <div class="tech-label">Breakout Trading</div><span class="ind-signal neutral"
+                                    id="techBreakoutSignal">NEUTRAL</span>
+                            </div>
+                            <div class="tech-value" id="techBreakoutDesc">Menunggu breakout...</div>
+                            <div class="tech-sr-levels">
+                                <span class="sr-level resistance">R: <b id="techBreakoutR">—</b></span>
+                                <span class="sr-level support">S: <b id="techBreakoutS">—</b></span>
+                                <span class="sr-level range">Range: <b id="techBreakoutRange">—</b></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="technique-item fib-item" id="techFib">
+                        <div class="tech-icon-box">🔢</div>
+                        <div class="tech-content">
+                            <div class="tech-label">Fibonacci Retracement</div>
+                            <div class="fib-levels">
+                                <div class="fib-row"><span class="fib-label">0% (High)</span><span class="fib-price"
+                                        id="fib0">—</span></div>
+                                <div class="fib-row"><span class="fib-label">23.6%</span><span class="fib-price"
+                                        id="fib236">—</span></div>
+                                <div class="fib-row"><span class="fib-label">38.2%</span><span class="fib-price"
+                                        id="fib382">—</span></div>
+                                <div class="fib-row golden"><span class="fib-label">50.0%</span><span class="fib-price"
+                                        id="fib500">—</span></div>
+                                <div class="fib-row golden"><span class="fib-label">61.8% ★</span><span
+                                        class="fib-price" id="fib618">—</span></div>
+                                <div class="fib-row"><span class="fib-label">78.6%</span><span class="fib-price"
+                                        id="fib786">—</span></div>
+                                <div class="fib-row"><span class="fib-label">100% (Low)</span><span class="fib-price"
+                                        id="fib100">—</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 5: Profit + Alerts + History (3 columns) -->
+        <section class="dash-row three-col">
+            <div class="card card-profit-tracker">
+                <div class="card-header">
+                    <h2><span class="card-icon">📊</span> Profit Tracker</h2>
+                </div>
+                <div class="profit-tracker-content">
+                    <div class="profit-bar-visual">
+                        <div class="profit-bar-track">
+                            <div class="profit-bar-fill" id="profitBarFill" style="width:0%"></div>
+                            <div class="profit-bar-target" id="profitBarTarget" style="left:100%"><span>🎯</span></div>
+                        </div>
+                        <div class="profit-bar-labels"><span>$0</span><span id="profitBarTargetLabel">Target: $50</span>
+                        </div>
+                    </div>
+                    <div class="profit-stats">
+                        <div class="profit-stat"><span class="stat-label">Profit Hari Ini</span><span
+                                class="stat-value profit" id="todayProfit">$0.00</span></div>
+                        <div class="profit-stat"><span class="stat-label">Total Trade</span><span class="stat-value"
+                                id="totalTrades">0</span></div>
+                        <div class="profit-stat"><span class="stat-label">Win Rate</span><span class="stat-value"
+                                id="winRate">0%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-alerts">
+                <div class="card-header">
+                    <h2><span class="card-icon">🔔</span> Sinyal Alert</h2>
+                    <button class="btn-clear" onclick="clearAlerts()">Clear</button>
+                </div>
+                <div class="alerts-list" id="alertsList">
+                    <div class="alert-empty"><span>⏳</span>
+                        <p>Menunggu sinyal...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-history">
+                <div class="card-header">
+                    <h2><span class="card-icon">📋</span> Riwayat Sinyal</h2>
+                </div>
+                <div class="history-table-wrapper">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Sinyal</th>
+                                <th>Harga</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <tr class="history-empty">
+                                <td colspan="4">Belum ada riwayat</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row: MT4/MT5 Connection & Auto-Trade -->
+        <section class="dash-row" style="margin-top: 12px;">
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h2><span class="card-icon">🔌</span> Koneksi MT4/MT5 & Auto-Trade</h2>
+                    <div id="mt4StatusBadge" style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; background: rgba(255,255,255,0.05); color: var(--text-muted);">
+                        ⚪ Belum Terhubung
+                    </div>
+                </div>
+                <div style="padding: 16px; display: grid; gap: 16px;">
+                    <!-- Connection Form -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; display: block;">MetaAPI Token</label>
+                            <input type="password" id="metaApiToken" placeholder="Paste API token disini..."
+                                style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: var(--text-primary); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; display: block;">Account ID</label>
+                            <input type="text" id="mt4AccountId" placeholder="Paste Account ID disini..."
+                                style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: var(--text-primary); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;">
+                        </div>
+                    </div>
+
+                    <!-- Buttons Row -->
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button id="btnConnect" onclick="connectMT4()"
+                            style="padding: 8px 20px; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: transform 0.2s;">
+                            🔌 Hubungkan
+                        </button>
+                        <button id="btnDisconnect" onclick="disconnectMT4()" class="hidden"
+                            style="padding: 8px 20px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; color: #ef4444; font-weight: 600; font-size: 0.75rem; cursor: pointer;">
+                            ✖ Putuskan
+                        </button>
+
+                        <!-- Separator -->
+                        <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 8px;"></div>
+
+                        <!-- Auto-Trade Toggle -->
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">Auto-Trade:</span>
+                            <label class="toggle-switch" style="position: relative; width: 40px; height: 22px; display: inline-block;">
+                                <input type="checkbox" id="autoTradeToggle" onchange="toggleAutoTrade(this.checked)"
+                                    style="opacity: 0; width: 0; height: 0;">
+                                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.1); border-radius: 22px; transition: 0.3s;"></span>
+                            </label>
+                            <span id="autoTradeStatus" style="font-size: 0.7rem; font-weight: 700; color: #ef4444;">OFF</span>
+                        </div>
+
+                        <!-- Lot Size -->
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">Lot:</span>
+                            <select id="autoTradeLot" onchange="state.autoTradeLot = parseFloat(this.value)"
+                                style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; padding: 2px 6px; font-family: 'JetBrains Mono', monospace;">
+                                <option value="0.01" selected>0.01</option>
+                                <option value="0.02">0.02</option>
+                                <option value="0.05">0.05</option>
+                                <option value="0.1">0.1</option>
+                            </select>
+                        </div>
+
+                        <!-- Emergency Close -->
+                        <button onclick="emergencyCloseAll()"
+                            style="padding: 6px 14px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; color: #f87171; font-size: 0.7rem; font-weight: 600; cursor: pointer; margin-left: auto;">
+                            🚨 Tutup Semua Posisi
+                        </button>
+                    </div>
+
+                    <!-- Status & Log -->
+                    <div id="mt4StatusText" style="font-size: 0.72rem; color: var(--text-muted); padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 6px; border-left: 3px solid rgba(255,255,255,0.1); min-height: 20px;">
+                        Masukkan MetaAPI Token dan Account ID, lalu klik "Hubungkan" untuk menghubungkan akun XM demo kamu.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Disclaimer Footer -->
+    <footer class="footer">
+        <div class="disclaimer">
+            <span class="disclaimer-icon">⚠️</span>
+            <p><strong>DISCLAIMER:</strong> Sinyal ini hanya untuk referensi edukasi. Tidak ada sinyal trading yang 100%
+                akurat. Trading forex memiliki risiko tinggi. Selalu gunakan manajemen risiko. Gunakan bersama Broker
+                <strong>XM GO</strong>.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Audio for alerts -->
+    <audio id="alertSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRlQGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YTAG" type="audio/wav">
+    </audio>
+
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        let tvWidget = null;
+        let chartMode = 'tradingview';
+
+        function initTradingViewWidget(symbol, interval) {
+            if (typeof TradingView === 'undefined') {
+                console.warn('TradingView library not loaded');
+                return;
+            }
+            const tvSymbol = symbol || (typeof MARKETS !== 'undefined' && typeof state !== 'undefined' 
+                ? (MARKETS[state.currentMarket]?.tvSymbol || 'OANDA:XAUUSD') 
+                : 'OANDA:XAUUSD');
+            const tvInterval = interval || (typeof state !== 'undefined' ? (state.currentTF === 'D' ? 'D' : state.currentTF || '15') : '15');
+            tvWidget = new TradingView.widget({
+                "autosize": true,
+                "symbol": tvSymbol,
+                "interval": tvInterval,
+                "timezone": "Asia/Jakarta",
+                "theme": "dark",
+                "style": "1",
+                "locale": "id_ID",
+                "toolbar_bg": "#0a0e27",
+                "enable_publishing": false,
+                "hide_top_toolbar": false,
+                "hide_legend": false,
+                "save_image": false,
+                "container_id": "tradingview_widget",
+                "backgroundColor": "#0a0e27",
+                "gridColor": "rgba(255,255,255,0.05)",
+                "studies": ["MASimple@tv-basicstudies", "BB@tv-basicstudies"],
+                "allow_symbol_change": false
+            });
+        }
+
+        function switchChartMode(mode) {
+            chartMode = mode;
+            const tvContainer = document.getElementById('tradingviewContainer');
+            const customContainer = document.getElementById('chartContainer');
+            const btnTV = document.getElementById('btnTradingView');
+            const btnCustom = document.getElementById('btnCustomChart');
+
+            if (mode === 'tradingview') {
+                tvContainer.style.display = 'block';
+                customContainer.style.display = 'none';
+                btnTV.classList.add('active');
+                btnCustom.classList.remove('active');
+                if (!tvWidget) initTradingViewWidget();
+            } else {
+                tvContainer.style.display = 'none';
+                customContainer.style.display = 'block';
+                btnTV.classList.remove('active');
+                btnCustom.classList.add('active');
+                if (typeof drawChart === 'function') drawChart();
+            }
+        }
+
+        // Initialize TradingView on page load
+        window.addEventListener('load', () => {
+            setTimeout(initTradingViewWidget, 1000);
+        });
+    </script>
+    <script src="app.js"></script>
+</body>
+
+</html>
