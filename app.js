@@ -1829,6 +1829,45 @@ const scalpingEngine = new ScalpingEngine();
 let priceData = [];
 let updateTimer = null;
 
+// Market Hours Detection
+function isMarketOpen() {
+    const now = new Date();
+    const utcDay = now.getUTCDay();
+    const utcHour = now.getUTCHours();
+
+    // BTC trades 24/7
+    if (state.currentMarket === 'BTCUSD') return true;
+
+    // Forex market: closed from Fri 22:00 UTC to Sun 22:00 UTC
+    if (utcDay === 6) return false; // Saturday = closed
+    if (utcDay === 0 && utcHour < 22) return false; // Sunday before 22:00 UTC = closed
+    if (utcDay === 5 && utcHour >= 22) return false; // Friday after 22:00 UTC = closed
+
+    return true;
+}
+
+function checkMarketStatus() {
+    const banner = document.getElementById('marketClosedBanner');
+    const detail = document.getElementById('mcbDetail');
+    if (!banner) return;
+
+    const open = isMarketOpen();
+
+    if (!open) {
+        banner.style.display = 'block';
+        // Calculate when market opens (Sunday 22:00 UTC = Monday 05:00 WIB)
+        const now = new Date();
+        const utcDay = now.getUTCDay();
+        let msg = 'Forex market buka Senin 05:00 WIB';
+        if (state.currentMarket === 'XAUUSD') {
+            msg = 'Gold (XAU/USD) buka Senin 05:00 WIB — Data saat ini SIMULASI';
+        }
+        if (detail) detail.textContent = msg;
+    } else {
+        banner.style.display = 'none';
+    }
+}
+
 // Spread selector
 function changeSpread(value) {
     state.brokerSpread = parseFloat(value);
@@ -2009,6 +2048,8 @@ async function init() {
     console.log('🚀 [INIT] Starting...');
     try { loadSettings(); console.log('✅ [INIT] loadSettings done'); } catch (e) { console.error('❌ [INIT] loadSettings error:', e); }
     try { loadMT4Settings(); console.log('✅ [INIT] loadMT4Settings done'); } catch (e) { console.warn('⚠️ [INIT] loadMT4Settings error (ignored):', e); }
+    checkMarketStatus();
+    setInterval(checkMarketStatus, 60000); // Check every minute
 
     // Try to sync with real gold price before generating data
     addAlert('info', '🔄 Sinkronisasi', 'Mencari harga XAU/USD real-time...');

@@ -2268,6 +2268,66 @@ body {
     opacity: 0.4;
 }
 
+/* Market Closed Banner */
+.market-closed-banner {
+    background: linear-gradient(90deg, #1a0a0a, #2d1111, #1a0a0a);
+    border: 1px solid rgba(255,60,60,0.3);
+    border-radius: 10px;
+    margin: 0 20px 12px;
+    padding: 10px 16px;
+    animation: mcb-pulse 2s ease-in-out infinite;
+}
+
+@keyframes mcb-pulse {
+    0%, 100% { border-color: rgba(255,60,60,0.3); }
+    50% { border-color: rgba(255,60,60,0.6); }
+}
+
+.mcb-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mcb-icon {
+    font-size: 20px;
+    animation: mcb-blink 1.5s ease-in-out infinite;
+}
+
+@keyframes mcb-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.mcb-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mcb-text strong {
+    color: #ff4444;
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+
+.mcb-text span {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.mcb-badge {
+    background: rgba(255,60,60,0.15);
+    border: 1px solid rgba(255,60,60,0.3);
+    color: #ff6666;
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
 .scalping-content {
     display: grid;
     grid-template-columns: 1fr 1.2fr 1fr;
