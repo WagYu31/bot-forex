@@ -2472,7 +2472,29 @@ function loadSettings() {
         const sel = document.getElementById('spreadSelector');
         if (sel) sel.value = savedSpread;
     }
+    // Load capital toggle state
+    const capitalEnabled = localStorage.getItem('botgold_capital_enabled');
+    if (capitalEnabled === '0') {
+        state.capitalEnabled = false;
+        const toggle = document.getElementById('capitalToggle');
+        if (toggle) toggle.checked = false;
+        toggleCapitalManager(false);
+    }
     updateCapitalSummary();
+}
+
+function toggleCapitalManager(enabled) {
+    const form = document.querySelector('.capital-form');
+    const summary = document.getElementById('capitalSummary');
+    const card = document.getElementById('capitalCard');
+
+    if (form) form.classList.toggle('hidden', !enabled);
+    if (summary) summary.classList.toggle('hidden', !enabled);
+    if (card) card.classList.toggle('disabled', !enabled);
+
+    state.capitalEnabled = enabled;
+    localStorage.setItem('botgold_capital_enabled', enabled ? '1' : '0');
+    addAlert('info', '💰 Manajemen Modal', enabled ? 'Diaktifkan' : 'Dinonaktifkan');
 }
 
 function applyCapitalSettings() {

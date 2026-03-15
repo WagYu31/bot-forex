@@ -2214,6 +2214,60 @@ body {
     color: #fff;
 }
 
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    width: 42px;
+    height: 22px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 22px;
+    transition: all 0.3s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    bottom: 3px;
+    background: #666;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--gold);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+    background: #0a0a0f;
+}
+
+/* Capital card hidden state */
+.capital-form.hidden,
+.capital-summary.hidden {
+    display: none;
+}
+
+.card-capital.disabled {
+    opacity: 0.4;
+}
+
 .scalping-content {
     display: grid;
     grid-template-columns: 1fr 1.2fr 1fr;
