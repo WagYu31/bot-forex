@@ -1986,6 +1986,7 @@ async function switchMarket(marketKey) {
     rsiHistory.length = 0;
 
     addAlert('info', '🔄 Market Switch', `Beralih ke ${market.icon} ${market.pair}`);
+    checkMarketStatus();
 
     // Fetch new price
     try {
