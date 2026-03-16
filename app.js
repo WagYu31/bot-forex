@@ -1038,11 +1038,17 @@ class ScalpingEngine {
                 result.confidence = 60;
             }
 
-            // Pass through position levels
-            result.entry = entryPrice;
-            result.tp1 = this.position.tp1;
-            result.tp2 = this.position.tp2;
-            result.sl = this.position.sl;
+            // Always show CURRENT levels (real-time entry point)
+            result.entry = currentPrice;
+            if (posType === 'BUY') {
+                result.tp1 = Math.round((currentPrice + tpPips1) * 100) / 100;
+                result.tp2 = Math.round((currentPrice + tpPips2) * 100) / 100;
+                result.sl = Math.round((currentPrice - slPips) * 100) / 100;
+            } else {
+                result.tp1 = Math.round((currentPrice - tpPips1) * 100) / 100;
+                result.tp2 = Math.round((currentPrice - tpPips2) * 100) / 100;
+                result.sl = Math.round((currentPrice + slPips) * 100) / 100;
+            }
             result.pipsTP = tpPips1;
             result.pipsSL = slPips;
             result.rrRatio = (tpPips1 / slPips).toFixed(1);
