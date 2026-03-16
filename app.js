@@ -10,7 +10,7 @@
 const CONFIG = {
     pair: 'XAU/USD',
     symbol: 'XAUUSD',
-    updateInterval: 5000,
+    updateInterval: 2000,
     historyMax: 50,
     alertsMax: 30,
     basePrice: 5170,
@@ -1186,8 +1186,8 @@ class ScalpingEngine {
         if (this.history.length > 10) this.history.pop();
 
         this.position = null;
-        // 30 second cooldown after closing
-        this.cooldownUntil = Date.now() + 30000;
+        // 10 second cooldown after closing
+        this.cooldownUntil = Date.now() + 10000;
     }
 
     getPosition() { return this.position; }
@@ -2337,7 +2337,7 @@ function loadMT4Settings() {
 // Price Update (MT4 or Real API or Simulation)
 // ==========================================
 let lastCandleRefresh = 0;
-const CANDLE_REFRESH_INTERVAL = 30000; // Refresh full candle history every 30 seconds
+const CANDLE_REFRESH_INTERVAL = 15000; // Refresh full candle history every 15 seconds
 
 async function updatePrice() {
     // Check if market is closed — freeze everything for forex
