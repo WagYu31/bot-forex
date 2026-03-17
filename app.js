@@ -476,13 +476,18 @@ class PriceEngine {
             if (realPrice) {
                 this.useRealData = true;
                 state.dataSource = 'realapi';
+                this.basePrice = realPrice;
                 // Small variance around real price for micro-movements
                 const microMove = (Math.random() - 0.5) * 0.8;
-                this.basePrice = realPrice;
                 return Math.round((realPrice + microMove) * 100) / 100;
             }
         }
-        // Fallback: simulation from last known price
+        // Between fetches: if we have real data, stay near last known real price
+        if (this.useRealData && this.basePrice > 0) {
+            const microMove = (Math.random() - 0.5) * 0.5;
+            return Math.round((this.basePrice + microMove) * 100) / 100;
+        }
+        // True fallback: no real data ever obtained
         return this.generateRealisticPrice();
     }
 
