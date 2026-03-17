@@ -876,8 +876,8 @@ class ScalpingEngine {
             else if (rsiVal < 30) { result.indicators.rsi.signal = 'BUY'; buyScore += 2; }
             else if (rsiVal > 80) { result.indicators.rsi.signal = 'SELL'; sellScore += 3; }
             else if (rsiVal > 70) { result.indicators.rsi.signal = 'SELL'; sellScore += 2; }
-            else if (rsiVal < 45) { result.indicators.rsi.signal = 'BUY'; buyScore += 1; }
-            else if (rsiVal > 55) { result.indicators.rsi.signal = 'SELL'; sellScore += 1; }
+            else if (rsiVal < 48) { result.indicators.rsi.signal = 'BUY'; buyScore += 1; }
+            else if (rsiVal > 52) { result.indicators.rsi.signal = 'SELL'; sellScore += 1; }
             else { result.indicators.rsi.signal = 'NEUTRAL'; }
         }
 
@@ -887,9 +887,9 @@ class ScalpingEngine {
             result.indicators.stoch = { value: Math.round(stoch.k * 100) / 100 };
             const kAboveD = stoch.k > stoch.d;
             if (stoch.k < 20 && kAboveD) { result.indicators.stoch.signal = 'BUY'; buyScore += 3; }
-            else if (stoch.k < 35) { result.indicators.stoch.signal = 'BUY'; buyScore += 1; }
+            else if (stoch.k < 40) { result.indicators.stoch.signal = 'BUY'; buyScore += 1; }
             else if (stoch.k > 80 && !kAboveD) { result.indicators.stoch.signal = 'SELL'; sellScore += 3; }
-            else if (stoch.k > 65) { result.indicators.stoch.signal = 'SELL'; sellScore += 1; }
+            else if (stoch.k > 60) { result.indicators.stoch.signal = 'SELL'; sellScore += 1; }
             else { result.indicators.stoch.signal = 'NEUTRAL'; }
         }
 
@@ -948,10 +948,10 @@ class ScalpingEngine {
                 result.indicators.bb.signal = 'SELL';
                 result.indicators.bb.value = 'Touch ↑';
                 sellScore += 2;
-            } else if (position < 0.30) {
+            } else if (position < 0.35) {
                 result.indicators.bb.signal = 'BUY';
                 buyScore += 1;
-            } else if (position > 0.70) {
+            } else if (position > 0.65) {
                 result.indicators.bb.signal = 'SELL';
                 sellScore += 1;
             } else {
@@ -1055,7 +1055,7 @@ class ScalpingEngine {
 
         } else {
             // ===== NO POSITION — Check for OPEN signal =====
-            if (buyScore >= minConfluence && netScore >= 2) {
+            if (buyScore >= minConfluence && netScore >= 1) {
                 result.signal = 'OPEN_BUY';
                 result.action = 'OPEN BUY';
                 result.subText = `📈 ${buyScore} indikator bullish confluent`;
@@ -1067,7 +1067,7 @@ class ScalpingEngine {
                 result.pipsTP = tpPips1;
                 result.pipsSL = slPips;
                 result.rrRatio = (tpPips1 / slPips).toFixed(1);
-            } else if (sellScore >= minConfluence && netScore <= -2) {
+            } else if (sellScore >= minConfluence && netScore <= -1) {
                 result.signal = 'OPEN_SELL';
                 result.action = 'OPEN SELL';
                 result.subText = `📉 ${sellScore} indikator bearish confluent`;
