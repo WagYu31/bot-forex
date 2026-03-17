@@ -46,7 +46,7 @@ let state = {
     todayProfit: 0,
     totalTrades: 0,
     winTrades: 0,
-    currentTF: '15',
+    currentTF: '30',
     scalpingTF: '1',
     brokerSpread: 1.6,
     isConnected: false,
