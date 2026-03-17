@@ -876,8 +876,8 @@ class ScalpingEngine {
             else if (rsiVal < 30) { result.indicators.rsi.signal = 'BUY'; buyScore += 2; }
             else if (rsiVal > 80) { result.indicators.rsi.signal = 'SELL'; sellScore += 3; }
             else if (rsiVal > 70) { result.indicators.rsi.signal = 'SELL'; sellScore += 2; }
-            else if (rsiVal < 40) { result.indicators.rsi.signal = 'BUY'; buyScore += 1; }
-            else if (rsiVal > 60) { result.indicators.rsi.signal = 'SELL'; sellScore += 1; }
+            else if (rsiVal < 45) { result.indicators.rsi.signal = 'BUY'; buyScore += 1; }
+            else if (rsiVal > 55) { result.indicators.rsi.signal = 'SELL'; sellScore += 1; }
             else { result.indicators.rsi.signal = 'NEUTRAL'; }
         }
 
@@ -887,9 +887,9 @@ class ScalpingEngine {
             result.indicators.stoch = { value: Math.round(stoch.k * 100) / 100 };
             const kAboveD = stoch.k > stoch.d;
             if (stoch.k < 20 && kAboveD) { result.indicators.stoch.signal = 'BUY'; buyScore += 3; }
-            else if (stoch.k < 30) { result.indicators.stoch.signal = 'BUY'; buyScore += 1; }
+            else if (stoch.k < 35) { result.indicators.stoch.signal = 'BUY'; buyScore += 1; }
             else if (stoch.k > 80 && !kAboveD) { result.indicators.stoch.signal = 'SELL'; sellScore += 3; }
-            else if (stoch.k > 70) { result.indicators.stoch.signal = 'SELL'; sellScore += 1; }
+            else if (stoch.k > 65) { result.indicators.stoch.signal = 'SELL'; sellScore += 1; }
             else { result.indicators.stoch.signal = 'NEUTRAL'; }
         }
 
@@ -948,10 +948,10 @@ class ScalpingEngine {
                 result.indicators.bb.signal = 'SELL';
                 result.indicators.bb.value = 'Touch ↑';
                 sellScore += 2;
-            } else if (position < 0.25) {
+            } else if (position < 0.30) {
                 result.indicators.bb.signal = 'BUY';
                 buyScore += 1;
-            } else if (position > 0.75) {
+            } else if (position > 0.70) {
                 result.indicators.bb.signal = 'SELL';
                 sellScore += 1;
             } else {
@@ -971,7 +971,7 @@ class ScalpingEngine {
         // ====== DETERMINE SCALPING SIGNAL ======
         const totalScore = buyScore + sellScore;
         const netScore = buyScore - sellScore;
-        const minConfluence = 3; // Need at least 3 points to signal
+        const minConfluence = 2; // Lower threshold — trigger signals earlier before price enters zone
 
         // Check cooldown
         if (now < this.cooldownUntil) {
