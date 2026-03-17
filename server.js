@@ -53,19 +53,10 @@ const MARKET_CONFIG = {
         label: 'XAU/USD (Gold)',
         priceApis: [
             {
-                name: 'Metals.live (Spot)',
-                url: 'https://api.metals.live/v1/spot',
-                parse: (data) => {
-                    const gold = data.find(m => m.gold !== undefined);
-                    return gold ? gold.gold : null;
-                }
-            },
-            {
                 name: 'Yahoo Finance (XAU/USD Spot)',
                 url: 'https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?interval=1m&range=1d',
                 parse: (data) => {
                     const result = data?.chart?.result?.[0];
-                    // Try latest candle close first, then regularMarketPrice
                     const quotes = result?.indicators?.quote?.[0];
                     if (quotes?.close) {
                         for (let i = quotes.close.length - 1; i >= 0; i--) {
@@ -92,11 +83,23 @@ const MARKET_CONFIG = {
                 }
             },
             {
-                name: 'Yahoo Finance (Gold Futures — fallback)',
+                name: 'Metals.live (Spot)',
+                url: 'https://api.metals.live/v1/spot',
+                parse: (data) => {
+                    if (Array.isArray(data)) {
+                        const gold = data.find(m => m.gold !== undefined);
+                        return gold ? gold.gold : null;
+                    }
+                    return null;
+                }
+            },
+            {
+                name: 'Yahoo Finance (Gold Futures → Spot adjusted)',
                 url: 'https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d',
                 parse: (data) => {
                     const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-                    return (price && price > 1000) ? price : null;
+                    // Subtract ~$10 futures premium to approximate spot price
+                    return (price && price > 1000) ? (price - 10) : null;
                 }
             }
         ],
