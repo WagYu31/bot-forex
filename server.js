@@ -53,35 +53,50 @@ const MARKET_CONFIG = {
         label: 'XAU/USD (Gold)',
         priceApis: [
             {
-                name: 'Yahoo Finance (XAU/USD Spot)',
-                url: 'https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?interval=1m&range=1d',
-                parse: (data) => {
-                    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-                    return (price && price > 1000) ? price : null;
-                }
-            },
-            {
-                name: 'Yahoo Finance v2 (XAU/USD)',
-                url: 'https://query2.finance.yahoo.com/v8/finance/chart/XAUUSD=X?interval=1m&range=1d',
-                parse: (data) => {
-                    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-                    return (price && price > 1000) ? price : null;
-                }
-            },
-            {
-                name: 'Yahoo Finance (Gold Futures)',
-                url: 'https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d',
-                parse: (data) => {
-                    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-                    return (price && price > 1000) ? price : null;
-                }
-            },
-            {
-                name: 'Metals.live',
+                name: 'Metals.live (Spot)',
                 url: 'https://api.metals.live/v1/spot',
                 parse: (data) => {
                     const gold = data.find(m => m.gold !== undefined);
                     return gold ? gold.gold : null;
+                }
+            },
+            {
+                name: 'Yahoo Finance (XAU/USD Spot)',
+                url: 'https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?interval=1m&range=1d',
+                parse: (data) => {
+                    const result = data?.chart?.result?.[0];
+                    // Try latest candle close first, then regularMarketPrice
+                    const quotes = result?.indicators?.quote?.[0];
+                    if (quotes?.close) {
+                        for (let i = quotes.close.length - 1; i >= 0; i--) {
+                            if (quotes.close[i] && quotes.close[i] > 1000) return quotes.close[i];
+                        }
+                    }
+                    const price = result?.meta?.regularMarketPrice;
+                    return (price && price > 1000) ? price : null;
+                }
+            },
+            {
+                name: 'Yahoo Finance v2 (XAU/USD Spot)',
+                url: 'https://query2.finance.yahoo.com/v8/finance/chart/XAUUSD=X?interval=1m&range=1d',
+                parse: (data) => {
+                    const result = data?.chart?.result?.[0];
+                    const quotes = result?.indicators?.quote?.[0];
+                    if (quotes?.close) {
+                        for (let i = quotes.close.length - 1; i >= 0; i--) {
+                            if (quotes.close[i] && quotes.close[i] > 1000) return quotes.close[i];
+                        }
+                    }
+                    const price = result?.meta?.regularMarketPrice;
+                    return (price && price > 1000) ? price : null;
+                }
+            },
+            {
+                name: 'Yahoo Finance (Gold Futures — fallback)',
+                url: 'https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d',
+                parse: (data) => {
+                    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+                    return (price && price > 1000) ? price : null;
                 }
             }
         ],
