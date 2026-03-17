@@ -52,6 +52,9 @@ let state = {
     isConnected: false,
     lastSignal: null,
     currentMarket: 'XAUUSD',
+    dxyPrice: 0,
+    dxyPrevPrice: 0,
+    dxySignal: 'NEUTRAL', // BUY = DXY turun (Gold naik), SELL = DXY naik (Gold turun)
     // MT4/MT5 Connection
     dataSource: 'simulation', // 'simulation' | 'metaapi'
     metaApiToken: '',
@@ -967,6 +970,22 @@ class ScalpingEngine {
             value: estimatedSpread.toFixed(1),
             signal: estimatedSpread < 1.0 ? 'BUY' : estimatedSpread <= 1.0 ? 'NEUTRAL' : 'SELL'
         };
+
+        // 6. DXY Inverse Correlation (for Gold only)
+        if (state.currentMarket === 'XAUUSD' && state.dxyPrice > 0) {
+            result.indicators.dxy = { value: state.dxyPrice.toFixed(2) };
+            if (state.dxySignal === 'BUY') {
+                // DXY turun → Gold naik
+                result.indicators.dxy.signal = 'BUY';
+                buyScore += 2;
+            } else if (state.dxySignal === 'SELL') {
+                // DXY naik → Gold turun
+                result.indicators.dxy.signal = 'SELL';
+                sellScore += 2;
+            } else {
+                result.indicators.dxy.signal = 'NEUTRAL';
+            }
+        }
 
         // ====== DETERMINE SCALPING SIGNAL ======
         const totalScore = buyScore + sellScore;
@@ -2371,6 +2390,32 @@ async function updatePrice() {
 
     // Market is open — hide banner
     checkMarketStatus();
+
+    // Fetch DXY price (for Gold inverse correlation)
+    if (state.currentMarket === 'XAUUSD') {
+        try {
+            const dxyResp = await fetch('/api/dxy');
+            const dxyData = await dxyResp.json();
+            if (dxyData.success && dxyData.price) {
+                state.dxyPrevPrice = state.dxyPrice || dxyData.price;
+                state.dxyPrice = dxyData.price;
+                const dxyChange = state.dxyPrice - state.dxyPrevPrice;
+                // Inverse: DXY turun → Gold naik (BUY), DXY naik → Gold turun (SELL)
+                if (dxyChange < -0.02) state.dxySignal = 'BUY';
+                else if (dxyChange > 0.02) state.dxySignal = 'SELL';
+                else state.dxySignal = 'NEUTRAL';
+                // Update UI
+                const dxyEl = document.getElementById('scalpDXY');
+                const dxySigEl = document.getElementById('scalpDXYSig');
+                if (dxyEl) dxyEl.textContent = state.dxyPrice.toFixed(2);
+                if (dxySigEl) {
+                    const sigText = state.dxySignal === 'BUY' ? 'BUY ↓' : state.dxySignal === 'SELL' ? 'SELL ↑' : 'NEUTRAL';
+                    dxySigEl.textContent = sigText;
+                    dxySigEl.className = 'scalp-ind-sig ' + (state.dxySignal === 'BUY' ? 'buy' : state.dxySignal === 'SELL' ? 'sell' : 'neutral');
+                }
+            }
+        } catch (e) { /* DXY fetch failed silently */ }
+    }
 
     if (state.dataSource === 'metaapi' && metaApi.connected) {
         // Fetch real price from MT4/MT5

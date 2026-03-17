@@ -122,6 +122,31 @@ const MARKET_CONFIG = {
             { sym: 'BTC-USD', name: 'BTC/USD (Yahoo)' }
         ],
         minPrice: 100
+    },
+    'DXY': {
+        label: 'DXY (US Dollar Index)',
+        priceApis: [
+            {
+                name: 'Yahoo Finance (DX-Y.NYB)',
+                url: 'https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB?interval=1m&range=1d',
+                parse: (data) => {
+                    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+                    return (price && price > 80) ? price : null;
+                }
+            },
+            {
+                name: 'Yahoo Finance v2 (DX-Y.NYB)',
+                url: 'https://query2.finance.yahoo.com/v8/finance/chart/DX-Y.NYB?interval=1m&range=1d',
+                parse: (data) => {
+                    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+                    return (price && price > 80) ? price : null;
+                }
+            }
+        ],
+        candleSymbols: [
+            { sym: 'DX-Y.NYB', name: 'DXY (Dollar Index)' }
+        ],
+        minPrice: 80
     }
 };
 
@@ -203,6 +228,13 @@ app.get('/api/price', async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     const market = (req.query.market || 'XAUUSD').toUpperCase();
     await fetchMarketPrice(market, res);
+});
+
+// DXY dedicated endpoint (fast)
+app.get('/api/dxy', async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json');
+    await fetchMarketPrice('DXY', res);
 });
 
 app.get('/api/candles', async (req, res) => {
